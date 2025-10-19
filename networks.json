@@ -1,0 +1,8 @@
+{
+  "sepolia": {
+    "dXmaster": {
+      "address": "0x332eac90e80dd8a56eaf8fd156000087ce08d01c",
+      "startBlock": 9278887
+    }
+  }
+}
