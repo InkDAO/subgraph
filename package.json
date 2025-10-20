@@ -1,18 +1,18 @@
 {
-  "name": "Analytics",
+  "name": "decentralizedx-analytics",
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ Analytics",
-    "create-local": "graph create --node http://localhost:8020/ Analytics",
-    "remove-local": "graph remove --node http://localhost:8020/ Analytics",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 Analytics",
+    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ decentralizedx-analytics",
+    "create-local": "graph create --node http://localhost:8020/ decentralizedx-analytics",
+    "remove-local": "graph remove --node http://localhost:8020/ decentralizedx-analytics",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 decentralizedx-analytics",
     "test": "graph test",
     "clean": "graph clean"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.93.1",
+    "@graphprotocol/graph-cli": "0.98.1",
     "@graphprotocol/graph-ts": "0.36.0"
   },
   "devDependencies": { "matchstick-as": "0.6.0" }

@@ -3,15 +3,16 @@ import {
   AssetBought as AssetBoughtEvent
 } from "../generated/dXmaster/dXmaster"
 import { BigInt, Bytes } from "@graphprotocol/graph-ts"
-import { dXasset } from "../generated/templates"
 import { Creator, Holder, GlobalStats, Asset } from "../generated/schema"
 import { BIGINT_ZERO, BIGINT_ONE, BYTES_ZERO, PLATFORM_FEE_PERCENTAGE } from "./constants"
 import { loadOrCreateAsset, loadOrCreateCreator, loadOrCreateHolder, loadOrCreatePurchase, loadOrCreateGlobalStats } from "./utils/entityUtils"
 
 export function handleAssetAdded(event: AssetAddedEvent): void {
-  updateUserStats(event.params._author, true)
+  updateUserStats(Bytes.fromHexString(event.params._author.toHexString()), true)
 
-  dXasset.create(event.params._assetAddress)
+  // Create data source template for the asset contract
+  // Note: This doesn't work in Matchstick test environment
+  // dXasset.create(event.params._assetAddress)
 
   let assetId = Bytes.fromHexString(event.params._assetAddress.toHexString())
   let asset = loadOrCreateAsset(assetId)
@@ -23,7 +24,8 @@ export function handleAssetAdded(event: AssetAddedEvent): void {
   asset.createdAt = event.block.timestamp
   
   // Get or create Creator
-  let creator = loadOrCreateCreator(event.params._author)
+  let creatorId = Bytes.fromHexString(event.params._author.toHexString())
+  let creator = loadOrCreateCreator(creatorId)
   creator.totalAssets = creator.totalAssets.plus(BIGINT_ONE)
   creator.save()
   
@@ -34,11 +36,13 @@ export function handleAssetAdded(event: AssetAddedEvent): void {
 }
 
 export function handleAssetBought(event: AssetBoughtEvent): void {
-  updateUserStats(event.params._buyer, false)
+  updateUserStats(Bytes.fromHexString(event.params._buyer.toHexString()), false)
 
-  let asset: Asset = loadOrCreateAsset(event.params._assetAddress)
+  let assetId = Bytes.fromHexString(event.params._assetAddress.toHexString())
+  let asset: Asset = loadOrCreateAsset(assetId)
 
-  let holder = loadOrCreateHolder(event.params._buyer)
+  let holderId = Bytes.fromHexString(event.params._buyer.toHexString())
+  let holder = loadOrCreateHolder(holderId)
   holder.totalPurchases = holder.totalPurchases.plus(BIGINT_ONE)
   holder.totalSpent = holder.totalSpent.plus(event.params._amount.times(asset.priceInWei))
   holder.save()
@@ -49,7 +53,7 @@ export function handleAssetBought(event: AssetBoughtEvent): void {
   purchase.amountPaid = event.params._amount.times(asset.priceInWei)
   purchase.purchasedAt = event.block.timestamp
   purchase.holder = holder.id
-  purchase.asset = event.params._assetAddress
+  purchase.asset = assetId
   purchase.save()
   
   updateGlobalStats(BIGINT_ZERO, BIGINT_ONE, event.params._amount.times(asset.priceInWei), event.params._amount.times(asset.priceInWei).times(PLATFORM_FEE_PERCENTAGE).div(BigInt.fromI32(100)), BIGINT_ZERO)
