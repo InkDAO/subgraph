@@ -1,16 +1,45 @@
-type AdminChanged @entity(immutable: true) {
+type Asset @entity(immutable: true) {
   id: Bytes!
-  previousAdmin: Bytes! # address
-  newAdmin: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  creator: Creator!
+  contentCid: String!
+  title: String!
+  thumbnailCid: String!
+  priceInWei: BigInt!
+  createdAt: BigInt!
+  purchases: [Purchase!]! @derivedFrom(field: "asset")
 }
 
-type Upgraded @entity(immutable: true) {
+type Creator @entity(immutable: false) {
   id: Bytes!
-  implementation: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  assets: [Asset!]! @derivedFrom(field: "creator")
+  totalAssets: BigInt!
+  totalEarnings: BigInt!
+}
+
+type Holder @entity(immutable: false) {
+  id: Bytes!
+  purchases: [Purchase!]! @derivedFrom(field: "holder")
+  totalPurchases: BigInt!
+  totalSpent: BigInt!
+}
+
+type Purchase @entity(immutable: false) {
+  id: String!
+  asset: Asset!
+  holder: Holder!
+  balance: BigInt!
+  purchasedAt: BigInt!
+  amountPaid: BigInt!
+}
+
+type GlobalStats @entity(immutable: false) {
+  id: Bytes!
+  totalAssets: BigInt!
+  totalCreators: BigInt!
+  totalUsers: BigInt!
+  totalHolders: BigInt!
+  totalPurchases: BigInt!
+  totalVolume: BigInt!
+  totalRevenue: BigInt!
+  totalAssetWorth: BigInt!
 }

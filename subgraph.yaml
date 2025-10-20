@@ -1,10 +1,9 @@
 specVersion: 1.0.0
-indexerHints:
-  prune: auto
+description: "Analytics for decentralizedX"
 schema:
   file: ./schema.graphql
 dataSources:
-  - kind: ethereum
+  - kind: ethereum/contract
     name: dXmaster
     network: sepolia
     source:
@@ -16,14 +15,37 @@ dataSources:
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - AdminChanged
-        - Upgraded
+        - Asset
+        - Creator
+        - Holder
+        - Purchase
+        - GlobalStats
       abis:
         - name: dXmaster
           file: ./abis/dXmaster.json
       eventHandlers:
-        - event: AdminChanged(address,address)
-          handler: handleAdminChanged
-        - event: Upgraded(indexed address)
-          handler: handleUpgraded
-      file: ./src/d-xmaster.ts
+        - event: AssetAdded(string,string,string,address,address,uint256)
+          handler: handleAssetAdded
+        - event: AssetBought(address,uint256,address)
+          handler: handleAssetBought
+      file: ./src/dXmaster.ts
+templates:
+  - name: dXasset
+    kind: ethereum/contract
+    network: sepolia
+    source:
+      abi: dXasset
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Asset
+        - Purchase
+      abis:
+        - name: dXasset
+          file: ./abis/dXasset.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/dXasset.ts
