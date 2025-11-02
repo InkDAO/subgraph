@@ -1,6 +1,6 @@
 import { Bytes, BigInt } from "@graphprotocol/graph-ts"
-import { Asset, Creator, Holder, GlobalStats, Purchase } from "../../generated/schema"
 import { BIGINT_ZERO, BYTES_ZERO } from "../constants"
+import { Asset, Creator, Holder, GlobalStats } from "../../generated/schema"
 
 export function loadOrCreateAsset(id: Bytes): Asset {
   let asset = Asset.load(id)
@@ -12,6 +12,7 @@ export function loadOrCreateAsset(id: Bytes): Asset {
     asset.thumbnailCid = ""
     asset.priceInWei = BIGINT_ZERO
     asset.createdAt = BIGINT_ZERO
+    asset.totalSubscriber = BIGINT_ZERO
     asset.save()
   }
   return asset
@@ -23,6 +24,8 @@ export function loadOrCreateCreator(id: Bytes): Creator {
     creator = new Creator(id)
     creator.totalAssets = BIGINT_ZERO
     creator.totalEarnings = BIGINT_ZERO
+    creator.totalAssetWorth = BIGINT_ZERO
+    creator.totalSubscribers = BIGINT_ZERO
     creator.save()
   }
   return creator
@@ -34,23 +37,10 @@ export function loadOrCreateHolder(id: Bytes): Holder {
     holder = new Holder(id)
     holder.totalPurchases = BIGINT_ZERO
     holder.totalSpent = BIGINT_ZERO
+    holder.asset = BYTES_ZERO  // Will be set by caller
     holder.save()
   }
   return holder
-}
-
-export function loadOrCreatePurchase(id: string): Purchase {
-  let purchase = Purchase.load(id)
-  if (purchase == null) {
-    purchase = new Purchase(id)
-    purchase.asset = BYTES_ZERO
-    purchase.holder = BYTES_ZERO
-    purchase.balance = BIGINT_ZERO
-    purchase.amountPaid = BIGINT_ZERO
-    purchase.purchasedAt = BIGINT_ZERO
-    purchase.save()
-  }
-  return purchase
 }
 
 export function loadOrCreateGlobalStats(id: Bytes): GlobalStats {

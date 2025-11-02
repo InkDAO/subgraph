@@ -4,12 +4,12 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: dXmaster
+    name: marketPlace
     network: sepolia
     source:
-      address: "0x332eac90e80dd8a56eaf8fd156000087ce08d01c"
-      abi: dXmaster
-      startBlock: 9278887
+      address: "0x7561565DDa067799454Ceba2DB8fAFB0AD31823d"
+      abi: marketPlace
+      startBlock: 9542815
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -18,34 +18,13 @@ dataSources:
         - Asset
         - Creator
         - Holder
-        - Purchase
         - GlobalStats
       abis:
-        - name: dXmaster
-          file: ./abis/dXmaster.json
+        - name: marketPlace
+          file: ./abis/marketPlace.json
       eventHandlers:
-        - event: AssetAdded(string,string,string,address,address,uint256)
-          handler: handleAssetAdded
-        - event: AssetBought(address,uint256,address)
-          handler: handleAssetBought
-      file: ./src/dXmaster.ts
-templates:
-  - name: dXasset
-    kind: ethereum/contract
-    network: sepolia
-    source:
-      abi: dXasset
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.7
-      language: wasm/assemblyscript
-      entities:
-        - Asset
-        - Purchase
-      abis:
-        - name: dXasset
-          file: ./abis/dXasset.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-      file: ./src/dXasset.ts
+        - event: PostCreated(indexed uint256,string,string,string,indexed address,uint256)
+          handler: handlePostCreated
+        - event: PostSubscribed(indexed uint256,indexed address,uint256)
+          handler: handlePostSubscribed
+      file: ./src/marketPlace.ts

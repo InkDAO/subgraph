@@ -1,32 +1,29 @@
 import {
-  AssetAdded as AssetAddedEvent,
-  AssetBought as AssetBoughtEvent
-} from "../generated/dXmaster/dXmaster"
+  PostCreated as PostCreatedEvent,
+  PostSubscribed as PostSubscribedEvent
+} from "../generated/marketPlace/marketPlace"
 import { BigInt, Bytes } from "@graphprotocol/graph-ts"
 import { Creator, Holder, GlobalStats, Asset } from "../generated/schema"
 import { BIGINT_ZERO, BIGINT_ONE, BYTES_ZERO, PLATFORM_FEE_PERCENTAGE } from "./constants"
-import { loadOrCreateAsset, loadOrCreateCreator, loadOrCreateHolder, loadOrCreatePurchase, loadOrCreateGlobalStats } from "./utils/entityUtils"
+import { loadOrCreateAsset, loadOrCreateCreator, loadOrCreateHolder, loadOrCreateGlobalStats } from "./utils/entityUtils"
 
-export function handleAssetAdded(event: AssetAddedEvent): void {
-  updateUserStats(Bytes.fromHexString(event.params._author.toHexString()), true)
+export function handlePostCreated(event: PostCreatedEvent): void {
+  updateUserStats(Bytes.fromHexString(event.params.author.toHexString()), true)
 
-  // Create data source template for the asset contract
-  // Note: This doesn't work in Matchstick test environment
-  // dXasset.create(event.params._assetAddress)
-
-  let assetId = Bytes.fromHexString(event.params._assetAddress.toHexString())
+  let assetId = Bytes.fromByteArray(Bytes.fromBigInt(event.params.tokenId))
   let asset = loadOrCreateAsset(assetId)
   
-  asset.contentCid = event.params._assetCid
-  asset.title = event.params._assetTitle
-  asset.thumbnailCid = event.params._thumbnailCid
-  asset.priceInWei = event.params._costInNativeInWei
+  asset.contentCid = event.params.postCid
+  asset.title = event.params.postTitle
+  asset.thumbnailCid = event.params.thumbnailCid
+  asset.priceInWei = event.params.costInNativeInWei
   asset.createdAt = event.block.timestamp
   
   // Get or create Creator
-  let creatorId = Bytes.fromHexString(event.params._author.toHexString())
+  let creatorId = Bytes.fromHexString(event.params.author.toHexString())
   let creator = loadOrCreateCreator(creatorId)
   creator.totalAssets = creator.totalAssets.plus(BIGINT_ONE)
+  creator.totalAssetWorth = creator.totalAssetWorth.plus(asset.priceInWei)
   creator.save()
   
   asset.creator = creator.id
@@ -35,28 +32,28 @@ export function handleAssetAdded(event: AssetAddedEvent): void {
   updateGlobalStats(BIGINT_ONE, BIGINT_ZERO, BIGINT_ZERO, BIGINT_ZERO, asset.priceInWei)
 }
 
-export function handleAssetBought(event: AssetBoughtEvent): void {
-  updateUserStats(Bytes.fromHexString(event.params._buyer.toHexString()), false)
+export function handlePostSubscribed(event: PostSubscribedEvent): void {
+  updateUserStats(Bytes.fromHexString(event.params.subscriber.toHexString()), false)
 
-  let assetId = Bytes.fromHexString(event.params._assetAddress.toHexString())
+  let assetId = Bytes.fromByteArray(Bytes.fromBigInt(event.params.tokenId))
   let asset: Asset = loadOrCreateAsset(assetId)
+  asset.totalSubscriber = asset.totalSubscriber.plus(BIGINT_ONE)
+  asset.save()
 
-  let holderId = Bytes.fromHexString(event.params._buyer.toHexString())
+  let creatorId = Bytes.fromHexString(asset.creator.toHexString())
+  let creator: Creator = loadOrCreateCreator(creatorId)
+  creator.totalSubscribers = creator.totalSubscribers.plus(BIGINT_ONE)
+  creator.totalEarnings = creator.totalEarnings.plus(event.params.totalCost)
+  creator.save()
+
+  let holderId = Bytes.fromHexString(event.params.subscriber.toHexString())
   let holder = loadOrCreateHolder(holderId)
   holder.totalPurchases = holder.totalPurchases.plus(BIGINT_ONE)
-  holder.totalSpent = holder.totalSpent.plus(event.params._amount.times(asset.priceInWei))
+  holder.totalSpent = holder.totalSpent.plus(event.params.totalCost)
+  holder.asset = asset.id
   holder.save()
   
-  let purchaseId = event.params._buyer.toHexString().concat("-").concat(event.params._assetAddress.toHexString())
-  let purchase = loadOrCreatePurchase(purchaseId)
-  purchase.balance = event.params._amount
-  purchase.amountPaid = event.params._amount.times(asset.priceInWei)
-  purchase.purchasedAt = event.block.timestamp
-  purchase.holder = holder.id
-  purchase.asset = assetId
-  purchase.save()
-  
-  updateGlobalStats(BIGINT_ZERO, BIGINT_ONE, event.params._amount.times(asset.priceInWei), event.params._amount.times(asset.priceInWei).times(PLATFORM_FEE_PERCENTAGE).div(BigInt.fromI32(100)), BIGINT_ZERO)
+  updateGlobalStats(BIGINT_ZERO, BIGINT_ONE, event.params.totalCost, event.params.totalCost.times(PLATFORM_FEE_PERCENTAGE).div(BigInt.fromI32(100)), BIGINT_ZERO)
 }
 
 function updateGlobalStats(

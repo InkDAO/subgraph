@@ -1,4 +1,4 @@
-type Asset @entity(immutable: true) {
+type Asset @entity(immutable: false) {
   id: Bytes!
   creator: Creator!
   contentCid: String!
@@ -6,7 +6,8 @@ type Asset @entity(immutable: true) {
   thumbnailCid: String!
   priceInWei: BigInt!
   createdAt: BigInt!
-  purchases: [Purchase!]! @derivedFrom(field: "asset")
+  totalSubscriber: BigInt!
+  holders: [Holder!]! @derivedFrom(field: "asset")
 }
 
 type Creator @entity(immutable: false) {
@@ -14,22 +15,15 @@ type Creator @entity(immutable: false) {
   assets: [Asset!]! @derivedFrom(field: "creator")
   totalAssets: BigInt!
   totalEarnings: BigInt!
+  totalAssetWorth: BigInt!
+  totalSubscribers: BigInt!
 }
 
 type Holder @entity(immutable: false) {
   id: Bytes!
-  purchases: [Purchase!]! @derivedFrom(field: "holder")
-  totalPurchases: BigInt!
-  totalSpent: BigInt!
-}
-
-type Purchase @entity(immutable: false) {
-  id: String!
   asset: Asset!
-  holder: Holder!
-  balance: BigInt!
-  purchasedAt: BigInt!
-  amountPaid: BigInt!
+  totalSpent: BigInt!
+  totalPurchases: BigInt!
 }
 
 type GlobalStats @entity(immutable: false) {
