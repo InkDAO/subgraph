@@ -5,7 +5,7 @@ import {
 import { BigInt, Bytes } from "@graphprotocol/graph-ts"
 import { Creator, Holder, GlobalStats, Asset } from "../generated/schema"
 import { BIGINT_ZERO, BIGINT_ONE, BYTES_ZERO, PLATFORM_FEE_PERCENTAGE } from "./constants"
-import { loadOrCreateAsset, loadOrCreateCreator, loadOrCreateHolder, loadOrCreateGlobalStats } from "./utils/entityUtils"
+import { loadOrCreateAsset, loadOrCreateCreator, loadOrCreateHolder, loadOrCreateGlobalStats, loadOrCreatePurchase } from "./utils/entityUtils"
 
 export function handlePostCreated(event: PostCreatedEvent): void {
   updateUserStats(Bytes.fromHexString(event.params.author.toHexString()), true)
@@ -50,8 +50,14 @@ export function handlePostSubscribed(event: PostSubscribedEvent): void {
   let holder = loadOrCreateHolder(holderId)
   holder.totalPurchases = holder.totalPurchases.plus(BIGINT_ONE)
   holder.totalSpent = holder.totalSpent.plus(event.params.totalCost)
-  holder.asset = asset.id
   holder.save()
+
+  let subscriptionId = Bytes.fromByteArray(Bytes.fromBigInt(event.params.tokenId).concat(Bytes.fromHexString(event.params.subscriber.toHexString())))
+  let purchase = loadOrCreatePurchase(subscriptionId)
+  purchase.asset = asset.id
+  purchase.holder = holder.id
+  purchase.subscribedAt = event.block.timestamp
+  purchase.save()
   
   updateGlobalStats(BIGINT_ZERO, BIGINT_ONE, event.params.totalCost, event.params.totalCost.times(PLATFORM_FEE_PERCENTAGE).div(BigInt.fromI32(100)), BIGINT_ZERO)
 }
