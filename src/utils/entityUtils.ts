@@ -1,6 +1,6 @@
 import { Bytes, BigInt } from "@graphprotocol/graph-ts"
 import { BIGINT_ZERO, BYTES_ZERO } from "../constants"
-import { Asset, Creator, Holder, GlobalStats } from "../../generated/schema"
+import { Asset, Creator, Holder, GlobalStats, Purchase } from "../../generated/schema"
 
 export function loadOrCreateAsset(id: Bytes): Asset {
   let asset = Asset.load(id)
@@ -37,10 +37,21 @@ export function loadOrCreateHolder(id: Bytes): Holder {
     holder = new Holder(id)
     holder.totalPurchases = BIGINT_ZERO
     holder.totalSpent = BIGINT_ZERO
-    holder.asset = BYTES_ZERO  // Will be set by caller
     holder.save()
   }
   return holder
+}
+
+export function loadOrCreatePurchase(id: Bytes): Purchase {
+  let purchase = Purchase.load(id)
+  if (purchase == null) {
+    purchase = new Purchase(id)
+    purchase.asset = BYTES_ZERO
+    purchase.holder = BYTES_ZERO
+    purchase.subscribedAt = BIGINT_ZERO
+    purchase.save()
+  }
+  return purchase
 }
 
 export function loadOrCreateGlobalStats(id: Bytes): GlobalStats {
