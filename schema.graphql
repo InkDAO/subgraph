@@ -41,6 +41,5 @@ type GlobalStats @entity(immutable: false) {
   totalHolders: BigInt!
   totalPurchases: BigInt!
   totalVolume: BigInt!
-  totalRevenue: BigInt!
   totalAssetWorth: BigInt!
 }

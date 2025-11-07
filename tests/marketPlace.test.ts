@@ -9,7 +9,6 @@ import {
 import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts"
 import { handlePostCreated, handlePostSubscribed } from "../src/marketPlace"
 import { createPostCreatedEvent, createPostSubscribedEvent } from "./marketPlace-utils"
-import { PLATFORM_FEE_PERCENTAGE } from "../src/constants"
 
 describe("marketPlace - Post and Subscription Tests", () => {
   beforeEach(() => {
@@ -191,7 +190,6 @@ describe("marketPlace - Post and Subscription Tests", () => {
       let statsId = Bytes.fromI32(0).toHexString()
       assert.fieldEquals("GlobalStats", statsId, "totalPurchases", "1")
       assert.fieldEquals("GlobalStats", statsId, "totalVolume", BigInt.fromI32(1000000).toString())
-      assert.fieldEquals("GlobalStats", statsId, "totalRevenue", BigInt.fromI32(1000000).times(PLATFORM_FEE_PERCENTAGE).div(BigInt.fromI32(100)).toString())
       assert.fieldEquals("GlobalStats", statsId, "totalHolders", "1")
     })
 

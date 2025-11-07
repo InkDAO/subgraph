@@ -64,7 +64,6 @@ export function loadOrCreateGlobalStats(id: Bytes): GlobalStats {
     stats.totalUsers = BIGINT_ZERO
     stats.totalPurchases = BIGINT_ZERO
     stats.totalVolume = BIGINT_ZERO
-    stats.totalRevenue = BIGINT_ZERO
     stats.totalAssetWorth = BIGINT_ZERO
     stats.save()
   }

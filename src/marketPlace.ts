@@ -4,7 +4,7 @@ import {
 } from "../generated/marketPlace/marketPlace"
 import { BigInt, Bytes } from "@graphprotocol/graph-ts"
 import { Creator, Holder, GlobalStats, Asset } from "../generated/schema"
-import { BIGINT_ZERO, BIGINT_ONE, BYTES_ZERO, PLATFORM_FEE_PERCENTAGE } from "./constants"
+import { BIGINT_ZERO, BIGINT_ONE, BYTES_ZERO } from "./constants"
 import { loadOrCreateAsset, loadOrCreateCreator, loadOrCreateHolder, loadOrCreateGlobalStats, loadOrCreatePurchase } from "./utils/entityUtils"
 
 export function handlePostCreated(event: PostCreatedEvent): void {
@@ -29,7 +29,7 @@ export function handlePostCreated(event: PostCreatedEvent): void {
   asset.creator = creator.id
   asset.save()
   
-  updateGlobalStats(BIGINT_ONE, BIGINT_ZERO, BIGINT_ZERO, BIGINT_ZERO, asset.priceInWei)
+  updateGlobalStats(BIGINT_ONE, BIGINT_ZERO, BIGINT_ZERO, asset.priceInWei)
 }
 
 export function handlePostSubscribed(event: PostSubscribedEvent): void {
@@ -59,14 +59,13 @@ export function handlePostSubscribed(event: PostSubscribedEvent): void {
   purchase.subscribedAt = event.block.timestamp
   purchase.save()
   
-  updateGlobalStats(BIGINT_ZERO, BIGINT_ONE, event.params.totalCost, event.params.totalCost.times(PLATFORM_FEE_PERCENTAGE).div(BigInt.fromI32(100)), BIGINT_ZERO)
+  updateGlobalStats(BIGINT_ZERO, BIGINT_ONE, event.params.totalCost, BIGINT_ZERO)
 }
 
 function updateGlobalStats(
   assetsIncrement: BigInt,
   purchasesIncrement: BigInt, 
   volumeIncrement: BigInt,
-  revenueIncrement: BigInt,
   assetWorthIncrement: BigInt
 ): void {
   let stats: GlobalStats = loadOrCreateGlobalStats(BYTES_ZERO)
@@ -74,7 +73,6 @@ function updateGlobalStats(
   stats.totalAssets = stats.totalAssets.plus(assetsIncrement)
   stats.totalPurchases = stats.totalPurchases.plus(purchasesIncrement)
   stats.totalVolume = stats.totalVolume.plus(volumeIncrement)
-  stats.totalRevenue = stats.totalRevenue.plus(revenueIncrement)
   stats.totalAssetWorth = stats.totalAssetWorth.plus(assetWorthIncrement)
 
   stats.save()
